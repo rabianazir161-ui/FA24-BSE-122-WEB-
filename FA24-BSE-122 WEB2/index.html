@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSC336 Web Technologies Quiz</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    body {
+      min-height: 100vh;
+      background-color: var(--bs-tertiary-bg);
+    }
+
+    .main-card {
+      max-width: 650px;
+      width: 100%;
+    }
+
+    .segment-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .segment {
+      flex: 1;
+      height: 10px;
+      border-radius: 6px;
+      opacity: 0.25;
+    }
+
+    .segment.active {
+      opacity: 1;
+    }
+
+    .seg-0 { background: #0d6efd; }
+    .seg-1 { background: #198754; }
+    .seg-2 { background: #ffc107; }
+    .seg-3 { background: #dc3545; }
+    .seg-4 { background: #6f42c1; }
+
+    .answer-btn {
+      text-align: left;
+      white-space: normal;
+    }
+
+    .answer-btn:disabled {
+      opacity: 1;
+    }
+
+    .app-card {
+      border: 0;
+      border-radius: 18px;
+    }
+  </style>
+</head>
+
+<body class="d-flex align-items-center justify-content-center p-3">
+
+  <main class="main-card">
+
+    <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fa-solid fa-graduation-cap fs-3 text-success"></i>
+        <h1 class="h5 fw-bold mb-0">CSC336 Web Technologies</h1>
+      </div>
+
+      <button type="button"
+        class="btn btn-outline-secondary rounded-circle"
+        onclick="toggleTheme()"
+        aria-label="Change theme">
+        <i id="themeIcon" class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+
+    <div class="card app-card shadow p-4 p-md-5">
+
+      <div id="formView">
+
+        <div class="text-center mb-4">
+          <h2 class="h4 fw-bold">Student Registration</h2>
+          <p class="text-secondary small mb-0">
+            Enter your details before starting the quiz.
+          </p>
+        </div>
+
+        <form id="studentForm" onsubmit="handleRegistration(event)">
+
+          <div class="mb-3">
+            <label for="studentName" class="form-label fw-semibold">
+              Full Name
+            </label>
+            <input type="text" id="studentName"
+              class="form-control"
+              placeholder="Enter your name" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="studentReg" class="form-label fw-semibold">
+              Registration Number
+            </label>
+            <input type="text" id="studentReg"
+              class="form-control"
+              placeholder="e.g. FA24-BSE-122" required>
+          </div>
+
+          <div class="mb-4">
+            <label for="studentClass" class="form-label fw-semibold">
+              Class / Section
+            </label>
+            <input type="text" id="studentClass"
+              class="form-control"
+              placeholder="e.g. BSSE-7A" required>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 py-2">
+            Continue
+            <i class="fa-solid fa-arrow-right ms-2"></i>
+          </button>
+
+        </form>
+      </div>
+
+      <div id="dashboardView" class="d-none">
+
+        <div class="text-center mb-4">
+          <h2 class="h4 fw-bold">
+            Welcome,
+            <span id="displayName" class="text-success">Student</span>!
+          </h2>
+          <p class="text-secondary small">
+            Choose an option to continue.
+          </p>
+        </div>
+
+        <div class="row g-3">
+
+          <div class="col-12 col-md-6">
+            <button type="button"
+              onclick="startQuizProcess()"
+              class="btn btn-outline-success w-100 h-100 p-4 text-start">
+
+              <i class="fa-solid fa-laptop-code fs-2 mb-3"></i>
+
+              <span class="d-block fw-bold">Online Quiz</span>
+              <span class="small">15 questions with a timer</span>
+
+              <span class="d-block mt-3 fw-semibold">
+                Start Quiz
+                <i class="fa-solid fa-arrow-right ms-1"></i>
+              </span>
+            </button>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="border rounded p-4 h-100">
+
+              <i class="fa-solid fa-list-check fs-2 text-secondary mb-3"></i>
+
+              <h3 class="h6 fw-bold">Quiz Rules</h3>
+
+              <ul class="small text-secondary ps-3 mb-0">
+                <li>15 seconds for each question.</li>
+                <li>Select one answer.</li>
+                <li>Download your result as a PDF.</li>
+              </ul>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="quizView" class="d-none">
+
+        <div class="segment-bar">
+          <div class="segment seg-0" id="seg-0"></div>
+          <div class="segment seg-1" id="seg-1"></div>
+          <div class="segment seg-2" id="seg-2"></div>
+          <div class="segment seg-3" id="seg-3"></div>
+          <div class="segment seg-4" id="seg-4"></div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+          <span id="questionProgress"
+            class="small text-secondary fw-semibold">
+            Question 1 / 15
+          </span>
+
+          <span class="small text-danger fw-bold">
+            <i class="fa-regular fa-clock me-1"></i>
+            <span id="timeLeft">15</span>s
+          </span>
+
+        </div>
+
+        <h2 id="questionText" class="h5 fw-bold mb-4">
+          Question will appear here.
+        </h2>
+
+        <div id="optionsContainer" class="d-grid gap-2 mb-4">
+        </div>
+
+        <div class="text-center">
+          <button type="button" id="nextBtn"
+            onclick="nextQuestion()"
+            class="btn btn-success px-4" disabled>
+
+            Next Question
+            <i class="fa-solid fa-arrow-right ms-1"></i>
+
+          </button>
+        </div>
+
+      </div>
+
+      <div id="resultView" class="d-none text-center py-3">
+
+        <div class="mb-3">
+          <i class="fa-solid fa-trophy display-4 text-success"></i>
+        </div>
+
+        <h2 class="h3 fw-bold">Quiz Completed!</h2>
+
+        <p class="text-secondary">Your score is</p>
+
+        <p class="display-6 fw-bold text-success">
+          <span id="finalScore">0</span> /
+          <span id="totalQuestions">15</span>
+        </p>
+
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+
+          <button type="button"
+            onclick="downloadPDF()"
+            class="btn btn-danger">
+
+            <i class="fa-solid fa-file-pdf me-2"></i>
+            Download PDF
+
+          </button>
+
+          <button type="button"
+            onclick="restartQuiz()"
+            class="btn btn-primary">
+
+            <i class="fa-solid fa-rotate-right me-2"></i>
+            Try Again
+
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const questions = [
+  
+  {
+    question: "What does HTML stand for?",
+    options: ["Hyper Text Markup Language", "High Text Machine Language", "Home Tool Markup Language", "Hyperlinks Text Mode"],
+    answer: "Hyper Text Markup Language"
+  },
+  {
+    question: "Which tag creates a paragraph?",
+    options: ["<h1>", "<p>", "<br>", "<div>"],
+    answer: "<p>"
+  },
+  {
+    question: "Which tag creates a hyperlink?",
+    options: ["<link>", "<a>", "<href>", "<url>"],
+    answer: "<a>"
+  },
+  {
+    question: "Which tag inserts an image?",
+    options: ["<image>", "<pic>", "<img>", "<src>"],
+    answer: "<img>"
+  },
+  {
+    question: "Which tag creates the largest heading?",
+    options: ["<h6>", "<head>", "<h1>", "<heading>"],
+    answer: "<h1>"
+  },
+
+  {
+    question: "What does CSS stand for?",
+    options: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style System", "Colorful Style Sheets"],
+    answer: "Cascading Style Sheets"
+  },
+  {
+    question: "Which property changes text color?",
+    options: ["background", "font-style", "color", "text-size"],
+    answer: "color"
+  },
+  {
+    question: "Which property changes background color?",
+    options: ["color", "background-color", "font-color", "bg-style"],
+    answer: "background-color"
+  },
+  {
+    question: "Which symbol selects an ID in CSS?",
+    options: [".", "#", "*", "&"],
+    answer: "#"
+  },
+  {
+    question: "Which property changes text size?",
+    options: ["text-style", "font-size", "font-color", "text-weight"],
+    answer: "font-size"
+  },
+
+  {
+    question: "What is JavaScript used for on websites?",
+    options: ["Adding interactivity", "Creating hardware", "Replacing HTML", "Designing databases only"],
+    answer: "Adding interactivity"
+  },
+  {
+    question: "Which keyword declares a variable?",
+    options: ["let", "print", "style", "html"],
+    answer: "let"
+  },
+  {
+    question: "Which command displays a message in the console?",
+    options: ["console.log()", "print()", "echo()", "show()"],
+    answer: "console.log()"
+  },
+  {
+    question: "Which symbol is used for a single-line comment in JavaScript?",
+    options: ["<!-- -->", "//", "**", "##"],
+    answer: "//"
+  },
+  {
+    question: "Which function displays a popup message?",
+    options: ["alert()", "message()", "popup()", "display()"],
+    answer: "alert()"
+  }
+];
+
+
+let student = { name: "", reg: "", className: "" };
+let quizQuestions = [];
+let questionIndex = 0;
+let score = 0;
+let timer;
+let seconds = 15;
+let answers = [];
+
+function toggleTheme() {
+  const page = document.documentElement;
+  const dark = page.getAttribute("data-bs-theme") === "dark";
+
+  page.setAttribute("data-bs-theme", dark ? "light" : "dark");
+  document.getElementById("themeIcon").className =
+    dark ? "fa-solid fa-moon" : "fa-solid fa-sun text-warning";
+}
+
+function handleRegistration(event) {
+  event.preventDefault();
+
+  student.name = document.getElementById("studentName").value.trim();
+  student.reg = document.getElementById("studentReg").value.trim();
+  student.className = document.getElementById("studentClass").value.trim();
+
+  document.getElementById("displayName").innerText = student.name;
+  document.getElementById("formView").classList.add("d-none");
+  document.getElementById("dashboardView").classList.remove("d-none");
+}
+
+function startQuizProcess() {
+  restartQuiz();
+}
+
+function restartQuiz() {
+  clearInterval(timer);
+
+  quizQuestions = [...questions].sort(() => Math.random() - 0.5);
+  questionIndex = 0;
+  score = 0;
+  answers = [];
+
+  document.getElementById("formView").classList.add("d-none");
+  document.getElementById("dashboardView").classList.add("d-none");
+  document.getElementById("resultView").classList.add("d-none");
+  document.getElementById("quizView").classList.remove("d-none");
+
+  loadQuestion();
+}
+
+function updateProgress() {
+  const activeSegment = Math.min(
+    4,
+    Math.floor((questionIndex / quizQuestions.length) * 5)
+  );
+
+  for (let i = 0; i < 5; i++) {
+    document.getElementById("seg-" + i)
+      .classList.toggle("active", i <= activeSegment);
+  }
+}
+
+function loadQuestion() {
+  clearInterval(timer);
+  updateProgress();
+
+  const current = quizQuestions[questionIndex];
+
+  document.getElementById("questionProgress").innerText =
+    `Question ${questionIndex + 1} / ${quizQuestions.length}`;
+
+  document.getElementById("questionText").innerText = current.question;
+  document.getElementById("nextBtn").disabled = true;
+
+  const optionsBox = document.getElementById("optionsContainer");
+  optionsBox.innerHTML = "";
+
+  const shuffledOptions = [...current.options]
+    .sort(() => Math.random() - 0.5);
+
+  shuffledOptions.forEach(option => {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "btn btn-outline-secondary answer-btn p-3";
+    button.innerText = option;
+
+    button.onclick = () => checkAnswer(button, option);
+    optionsBox.appendChild(button);
+  });
+
+  seconds = 15;
+  document.getElementById("timeLeft").innerText = seconds;
+
+  timer = setInterval(() => {
+    seconds--;
+    document.getElementById("timeLeft").innerText = seconds;
+
+    if (seconds <= 0) {
+      clearInterval(timer);
+      timeIsUp();
+    }
+  }, 1000);
+}
+
+function checkAnswer(selectedButton, selectedOption) {
+  clearInterval(timer);
+
+  const current = quizQuestions[questionIndex];
+  const buttons = document.querySelectorAll(".answer-btn");
+  const correct = selectedOption === current.answer;
+
+  buttons.forEach(button => {
+    button.disabled = true;
+
+    if (button.innerText === current.answer) {
+      button.classList.remove("btn-outline-secondary");
+      button.classList.add("btn-success");
+    }
+  });
+
+  if (!correct) {
+    selectedButton.classList.remove("btn-outline-secondary");
+    selectedButton.classList.add("btn-danger");
+  } else {
+    score++;
+  }
+
+  answers.push({
+    question: current.question,
+    selected: selectedOption,
+    correct: current.answer,
+    status: correct ? "Correct" : "Incorrect"
+  });
+
+  document.getElementById("nextBtn").disabled = false;
+  document.getElementById("nextBtn").innerHTML =
+    questionIndex === quizQuestions.length - 1
+      ? 'Finish Quiz <i class="fa-solid fa-check ms-1"></i>'
+      : 'Next Question <i class="fa-solid fa-arrow-right ms-1"></i>';
+}
+
+function timeIsUp() {
+  const current = quizQuestions[questionIndex];
+  const buttons = document.querySelectorAll(".answer-btn");
+
+  buttons.forEach(button => {
+    button.disabled = true;
+
+    if (button.innerText === current.answer) {
+      button.classList.remove("btn-outline-secondary");
+      button.classList.add("btn-success");
+    }
+  });
+
+  answers.push({
+    question: current.question,
+    selected: "Not Answered",
+    correct: current.answer,
+    status: "Time Up"
+  });
+
+  document.getElementById("nextBtn").disabled = false;
+  document.getElementById("nextBtn").innerHTML =
+    questionIndex === quizQuestions.length - 1
+      ? 'Finish Quiz <i class="fa-solid fa-check ms-1"></i>'
+      : 'Next Question <i class="fa-solid fa-arrow-right ms-1"></i>';
+}
+
+function nextQuestion() {
+  clearInterval(timer);
+
+  if (questionIndex < quizQuestions.length - 1) {
+    questionIndex++;
+    loadQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  clearInterval(timer);
+
+  document.getElementById("quizView").classList.add("d-none");
+  document.getElementById("resultView").classList.remove("d-none");
+
+  document.getElementById("finalScore").innerText = score;
+  document.getElementById("totalQuestions").innerText =
+    quizQuestions.length;
+}
+
+function downloadPDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("PDF library not loaded. Please check your internet connection.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text("CSC336 Web Technologies Quiz Result", 14, 20);
+
+  doc.setFontSize(11);
+  doc.text("Student: " + student.name, 14, 32);
+  doc.text("Registration No: " + student.reg, 14, 40);
+  doc.text("Class / Section: " + student.className, 14, 48);
+  doc.text("Score: " + score + " / " + quizQuestions.length, 14, 56);
+
+  const rows = answers.map((item, index) => [
+    index + 1,
+    item.question,
+    item.selected,
+    item.correct,
+    item.status
+  ]);
+
+  doc.autoTable({
+    startY: 64,
+    head: [[
+      "No.",
+      "Question",
+      "Your Answer",
+      "Correct Answer",
+      "Result"
+    ]],
+    body: rows,
+    theme: "grid",
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: "linebreak"
+    },
+    headStyles: {
+      fillColor: [25, 135, 84]
+    }
+  });
+
+  doc.save("Web_Technologies_Quiz_Result.pdf");
+}
+
+</script>
+</body>
